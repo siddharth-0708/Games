@@ -1,0 +1,231 @@
+<html>
+<head>
+  <title>Snake Game</title>
+  </head>
+  <style>
+canvas {
+  background-color: purple;
+}
+</style>
+  <body>
+    <canvas height = "600" width = "1000" style = "border: 2px solid #000000" "background-color= grey" id="ctx"/></canvas>
+    <script>
+    var ctx = document.getElementById('ctx').getContext('2d');
+    ctx.font = '60px calibri';
+
+    ctx.save();
+    ctx.font = '50px calibri';
+    ctx.fillStyle = "yellow";
+    ctx.fillText('GAME:SNAKE', 350,100);
+    ctx.restore();
+
+    ctx.fillText('Click Here to start the game', 150,250);
+    ctx.fillText('Developer: Siddharth', 230,350);
+
+
+    var WIDTH= 1000;
+    var HEIGHT = 600;
+    var snakelist, foodlist, direction, eaten, inter, score;
+    var snakebody = {
+      width: 30,
+      height: 30,
+      color:'black'
+    };
+    var food = {
+      width: 25,
+      height: 25,
+      color:'orange'
+    };
+
+    document.getElementById('ctx').onmousedown = function(){
+      startgame();
+    }
+
+    document.onkeydown = function(event){
+      //0 - left, 1 - up, 2-right, 3-down
+      if(event.keyCode == 37){
+        direction = 0;
+      //  console.log(direction);
+      }
+      else if (event.keyCode == 38) {
+        direction = 1;
+      //  console.log(direction);
+      }
+      else if (event.keyCode == 39) {
+        direction = 2;
+      //  console.log(direction);
+      }
+      else if (event.keyCode == 40) {
+        direction = 3;
+      //  console.log(direction);
+      }
+    }
+
+    drawsnake = function(sbo,i){  //sends internally snake body object and its index
+      ctx.save();
+      if(i == 0){
+        ctx.fillStyle = 'yellow';
+      }
+      else{
+        ctx.fillStyle = snakebody.color;
+      }
+      ctx.fillRect(sbo.x,sbo.y,snakebody.width,snakebody.height);
+      ctx.restore();
+      isgameover();
+    }
+
+    drawfood = function(sbo,i){  //sends internally snake body object and its index
+      ctx.save();
+      if(i == 0){
+        ctx.fillStyle = food.color;
+      }
+      ctx.fillRect(sbo.x,sbo.y,food.width,food.height);
+      ctx.restore();
+    }
+
+    snakeboundrycheck = function(){
+      if(snakelist[0].x > 1000){
+        gameoverboundry();
+      }
+      if(snakelist[0].x < 0){
+        gameoverboundry();
+      }
+      if(snakelist[0].y > 600){
+      gameoverboundry();
+      }
+      if(snakelist[0].y < 0){
+        gameoverboundry();
+      }
+    }
+
+    gameoverboundry = function(){
+      clearInterval(inter);
+      ctx.fillText('Oops collison!!!!',300,240);
+      ctx.fillText('GAME OVER',335,330);
+    }
+
+    isgameover = function(){
+      for(i in snakelist){
+        if(i == 0){
+          continue;
+        }
+       if(testcollisionsnake(snakelist[0],snakelist[i])){
+         gameoverboundry();
+         return;
+       }
+      }
+    }
+
+   testcollision = function(rect1,rect2){
+     return((rect1.x <= rect2.x + food.width) &&
+            (rect2.x <= rect1.x + snakebody.width) &&
+            (rect1.y <= rect2.y + food.height) &&
+            (rect2.y <= rect1.y + snakebody.height)
+   );
+   }
+
+   testcollisionsnake = function(snake1,snake2){
+     return((Math.abs(snake1.x - snake2.x) < 5) &&
+           (Math.abs(snake1.y - snake2.y) < 5));
+   }
+    snakeposupdate = function(){
+      for(var i = snakelist.length-1; i >= 0 ; i--)
+      {
+        if(direction == 0){
+          if(i == 0){
+            snakelist[i].x = snakelist[i].x - 15;
+          }
+          else{
+            snakelist[i].x = snakelist[i-1].x;
+            console.log(snakelist[i].x);
+            snakelist[i].y = snakelist[i-1].y;
+          }
+        }
+        else if (direction == 1) {
+          if(i == 0){
+            snakelist[i].y = snakelist[i].y - 15;
+          }else{
+            snakelist[i].x = snakelist[i-1].x;
+            snakelist[i].y = snakelist[i-1].y;
+          }
+        }
+        else if (direction == 2) {
+          if(i == 0){
+            snakelist[i].x = snakelist[i].x + 15;
+          }else{
+            snakelist[i].x = snakelist[i-1].x;
+            snakelist[i].y = snakelist[i-1].y;
+          }
+        }
+        else if (direction == 3) {
+          if(i == 0){
+            snakelist[i].y = snakelist[i].y + 15;
+          }else{
+            snakelist[i].x = snakelist[i-1].x;
+            snakelist[i].y = snakelist[i-1].y;
+          }
+        }
+      }
+    }
+     updatesnakepos = function(){
+       ctx.clearRect(0,0,WIDTH,HEIGHT);
+       snakelist.forEach(drawsnake); //this means for each object in the snake list,draw snake function is called
+       while (eaten) {
+         var x_pos = Math.random()*950 + 5;
+         var y_pos = Math.random()*550 + 5;
+         foodlist[0] = {x:x_pos,y:y_pos};
+         eaten = false;
+       }
+       foodlist.forEach(drawfood);
+       if(testcollision(snakelist[0],foodlist[0])){
+         foodlist = [];
+         eaten = true;
+         score = score + 1;
+         var new_x, new_y;
+         if(direction == 0){
+           new_x = snakelist[0].x - 15;
+           new_y = snakelist[0].y;
+          }
+           else if(direction == 1){
+             new_x = snakelist[0].x;
+             new_y = snakelist[0].y - 15;
+           }
+          else if(direction == 2){
+             new_x = snakelist[0].x + 15;
+             new_y = snakelist[0].y;
+           }
+           else if(direction == 3){
+             new_x = snakelist[0].x;
+             new_y = snakelist[0].y + 15;
+           }
+           snakelist.unshift({x:new_x, y:new_y});
+           //console.log(new_x,new_y);
+         }
+       snakeboundrycheck();
+       ctx.fillText('score: '+ score, 700,50);
+       snakeposupdate();
+     }
+     startgame = function() {
+      snakelist = [
+      {
+        x:250,
+        y:200
+      },
+      {
+        x:230,
+        y:200
+      },
+      {
+        x:210,
+        y:200
+      }
+    ];
+      foodlist = [];
+      direction = 90;
+      score = 0;
+      eaten = true;
+      inter = setInterval(updatesnakepos,60);
+    };
+    </script>
+    </body>
+    </html>

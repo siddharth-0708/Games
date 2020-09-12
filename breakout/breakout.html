@@ -1,0 +1,203 @@
+<html>
+<head>
+<title>BreakOut Game </title>
+</head>
+<style>
+canvas {
+  background-color: black;
+}
+</style>
+<body>
+<canvas height= "500" width= "500" style = "border: 2px solid #000000","background-color= black", id="ctx"/></canvas>
+
+<script>
+var ctx = document.getElementById('ctx').getContext('2d');
+ctx.font = '30px calibri';
+ctx.fillStyle = "red";
+
+ctx.save();
+ctx.font = '40px calibri';
+ctx.fillStyle = "white";
+ctx.fillText('GAME:BREAKOUT', 110,100);
+ctx.restore();
+
+ctx.fillText('Click Here to start the game', 80,200);
+ctx.fillText('Developer: Siddharth', 120,260);
+
+var WIDTH = 500;
+var HEIGHT = 500;
+var tilenum, tilelist , score, remain, inr;
+
+document.getElementById('ctx').onmousedown = function(){
+  startgame();
+}
+
+var ball = {
+  x:250,
+  y:200,
+  radius:5,
+  color:'white',
+  spdx : -5,
+  spdy : -5
+};
+
+var base = {
+  x:0,
+  y:400,
+  width: 100,
+  height: 20,
+  color:'grey',
+  pressleft:false,
+  pressright:false
+};
+
+var tiles = {
+  height:20,
+  width:40,
+  color:'coral'
+};
+
+drawtile = function(t,i){
+  ctx.save();
+  ctx.fillStyle = tiles.color;
+  ctx.fillRect(t.x,t.y,tiles.width,tiles.height);
+  ctx.restore();
+}
+
+drawball = function(){
+  ctx.save();
+  ctx.fillStyle = ball.color;
+  ctx.beginPath();
+  ctx.arc(ball.x,ball.y,ball.radius,0,2*Math.PI);
+  ctx.fill();
+  ctx.restore();
+}
+
+drawbase = function(){
+  ctx.save();
+  ctx.fillStyle = base.color;
+  ctx.fillRect(base.x,base.y,base.width,base.height);
+  ctx.restore();
+}
+
+document.onkeydown = function(event){
+  //0 - left, 1 - up, 2-right, 3-down
+  if(event.keyCode == 37){
+   base.pressleft = true;
+   base.pressright = false;
+  }
+  else if (event.keyCode == 39) {
+    base.pressleft = false;
+    base.pressright = true;
+  }
+}
+
+document.onkeyup = function(event){
+  //0 - left, 1 - up, 2-right, 3-down
+  if(event.keyCode == 39){
+   base.pressleft = false;
+   base.pressright = true;
+  }
+  else if (event.keyCode == 37) {
+    base.pressleft = true;
+    base.pressright = false;
+  }
+}
+
+updatebasepos = function(){
+  if(base.pressleft){
+    base.x = base.x - 5;
+  }
+  else if(base.pressright){
+    base.x = base.x + 5;
+  }
+  if(base.x < 0){
+    base.x = 0;
+  }
+  if(base.x > WIDTH-100){
+    base.x = WIDTH - 100;
+  }
+}
+
+isgameover = function(){
+  clearInterval(inr);
+  ctx.fillText('GAME OVER!!!!!!',120,250);
+}
+
+testcollision = function(base,ball){
+  return((base.x < ball.x + 2*ball.radius) &&
+          (ball.x < base.x + base.width) &&
+          (base.y < ball.y + 2*ball.radius) &&
+          (ball.y < base.y + base.height));
+}
+
+testcollisiontile = function(t,ball){
+  return((t.x < ball.x + 2*ball.radius) &&
+          (ball.x < t.x + tiles.width) &&
+          (t.y < ball.y + 2*ball.radius) &&
+          (ball.y < t.y + tiles.height));
+}
+
+updateballpos = function(){
+  ball.x = ball.x + ball.spdx;
+  ball.y = ball.y + ball.spdy;
+  if(ball.x < 0 || ball.x > 500){
+    ball.spdx = -ball.spdx;
+  }
+  if(ball.y < 0 || ball.y > 500){
+    ball.spdy = -ball.spdy;
+  }
+}
+
+update = function(){
+  ctx.clearRect(0,0,WIDTH,HEIGHT);
+  updatebasepos();
+  updateballpos();
+  if(testcollision(base,ball)){
+    ball.spdy = -ball.spdy
+  };
+
+  for(key in tilelist){
+    if(testcollisiontile(tilelist[key],ball)){
+      delete tilelist[key];
+      remain--;
+      ball.spdy = -ball.spdy;
+      score = score + 10;
+      console.log(remain);
+      if(remain < 1){
+        isgameover();
+      }
+    }
+  }
+
+  tilelist.forEach(drawtile);//****very important*****
+  drawball();
+  drawbase();
+  ctx.fillText('score: '+ score, 5,480);
+}
+
+startgame = function(){
+  base.x = 150;
+  score = 0;
+  remain = 66;
+  base.x = base.x + 100;
+  ball.y = ball.y + 100;
+  tilenum = 0;
+  var tilex = 5;
+  var tiley = 10;
+  tilelist = [];
+  for(var i = 1; i <= 6 ; i++){
+    tilex = 5;
+    for(var j = 1;j < 12; j++){
+      tilelist[tilenum] = {x:tilex,y:tiley};
+      tilenum++;
+      tilex += 45;
+    }
+    tiley +=25;
+  }
+  inr = setInterval(update,20);
+}
+
+</script>
+</body>
+</html>
